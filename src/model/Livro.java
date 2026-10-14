@@ -7,6 +7,9 @@ public class Livro {
 	private int ano;
 	
 	public Livro(int chave, String titulo, String autor, int ano) {
-		
+		this.chave = chave;
+		this.titulo = titulo;
+		this.autor = autor;
+		this.ano = ano;
 	}
 }
