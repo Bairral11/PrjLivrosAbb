@@ -18,6 +18,9 @@ public class Livro {
 	}
 
 	public void setChave(int chave) {
+		if (chave <= 0) {
+			throw new IllegalArgumentException("A chave deve ser maior que zero");
+		}
 		this.chave = chave;
 	}
 
