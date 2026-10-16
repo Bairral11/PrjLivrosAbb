@@ -12,4 +12,36 @@ public class Livro {
 		this.autor = autor;
 		this.ano = ano;
 	}
+	
+	public int getChave() {
+		return chave;
+	}
+
+	public void setChave(int chave) {
+		this.chave = chave;
+	}
+
+	public String getTitulo() {
+		return titulo;
+	}
+
+	public void setTitulo(String titulo) {
+		this.titulo = titulo;
+	}
+
+	public String getAutor() {
+		return autor;
+	}
+
+	public void setAutor(String autor) {
+		this.autor = autor;
+	}
+
+	public int getAno() {
+		return ano;
+	}
+
+	public void setAno(int ano) {
+		this.ano = ano;
+	}
 }
