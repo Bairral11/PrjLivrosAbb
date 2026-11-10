@@ -69,16 +69,23 @@ public class CtrlPrograma {
                     break;
 
                 case 3:
-                    System.out.print("Digite a chave do livro para busca: ");
-                    int chaveBuscar = scanner.nextInt();
-                    Livro encontrado = arvore.buscar(chaveBuscar);
-                    if (encontrado != null) {
-                        System.out.println("Busca: " + encontrado.getChave() + " - " + 
-                                           encontrado.getTitulo() + " (" + 
-                                           encontrado.getAutor() + ", " + 
-                                           encontrado.getAno() + ")");
-                    } else {
-                        System.out.println("Livro não encontrado.");
+                    try {
+                        System.out.print("Digite a chave do livro para busca: ");
+                        int chaveBuscar = scanner.nextInt();
+                        scanner.nextLine();
+
+                        Livro encontrado = arvore.buscar(chaveBuscar);
+
+                        if (encontrado != null) {
+                            System.out.println("Busca: " + encontrado.getChave() + " - " +
+                                               encontrado.getTitulo() + " (" +
+                                               encontrado.getAutor() + ", " +
+                                               encontrado.getAno() + ")");
+                        } else {
+                            System.out.println("Livro não encontrado.");
+                        }
+                    } catch (ModelException e) {
+                        System.out.println("Erro: " + e.getMessage());
                     }
                     break;
 
