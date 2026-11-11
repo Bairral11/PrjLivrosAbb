@@ -1,6 +1,8 @@
 package util;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import model.Livro;
 import model.ModelException;
@@ -18,92 +20,125 @@ public class ABB {
         return tamanho;
     }
 
-    // Inseririndo com verificação
+    /** Retorna a raiz para consulta e representação visual da árvore. */
+    public No getRaiz() {
+        return raiz;
+    }
+
+    /** Insere um livro sem usar recursão, evitando estouro de pilha em árvores altas. */
     public void inserir(Livro livro) throws ModelException {
         if (livro == null) {
             throw new ModelException("Livro inválido.");
         }
-        raiz = inserirRecursivo(raiz, livro);
-        tamanho++;
+
+        No novo = new No(livro);
+        if (raiz == null) {
+            raiz = novo;
+            tamanho++;
+            return;
+        }
+
+        No atual = raiz;
+        while (true) {
+            int chaveAtual = atual.getLivro().getChave();
+            int novaChave = livro.getChave();
+
+            if (novaChave < chaveAtual) {
+                if (atual.getEsquerda() == null) {
+                    atual.setEsquerda(novo);
+                    tamanho++;
+                    return;
+                }
+                atual = atual.getEsquerda();
+            } else if (novaChave > chaveAtual) {
+                if (atual.getDireita() == null) {
+                    atual.setDireita(novo);
+                    tamanho++;
+                    return;
+                }
+                atual = atual.getDireita();
+            } else {
+                throw new ModelException("Livro com a chave " + novaChave
+                        + " já está cadastrado!");
+            }
+        }
     }
 
-    private No inserirRecursivo(No atual, Livro livro) throws ModelException {
-        if (atual == null) {
-            return new No(livro);
-        }
-        if (livro.getChave() < atual.getLivro().getChave()) {
-            atual.setEsquerda(inserirRecursivo(atual.getEsquerda(), livro));
-        } else if (livro.getChave() > atual.getLivro().getChave()) {
-            atual.setDireita(inserirRecursivo(atual.getDireita(), livro));
-        } else {
-            throw new ModelException("Livro com a chave " + livro.getChave() + " já está cadastrado!");
-        }
-        return atual;
-    }
-
-    // Buscando
+    /** Busca iterativa para suportar árvores desbalanceadas e de grande altura. */
     public Livro buscar(int chave) {
-        No encontrado = buscarRecursivo(raiz, chave);
-        return encontrado != null ? encontrado.getLivro() : null;
+        No atual = raiz;
+        while (atual != null) {
+            int chaveAtual = atual.getLivro().getChave();
+            if (chave == chaveAtual) return atual.getLivro();
+            atual = chave < chaveAtual ? atual.getEsquerda() : atual.getDireita();
+        }
+        return null;
     }
 
-    private No buscarRecursivo(No atual, int chave) {
-        if (atual == null || atual.getLivro().getChave() == chave) {
-            return atual;
-        }
-        if (chave < atual.getLivro().getChave()) {
-            return buscarRecursivo(atual.getEsquerda(), chave);
-        }
-        return buscarRecursivo(atual.getDireita(), chave);
-    }
-
-    // Retornando a lista 
+    /** Percurso em ordem iterativo: retorna os livros ordenados pela chave. */
     public List<Livro> emOrdem() {
         List<Livro> lista = new ArrayList<>();
-        percorrerEmOrdem(raiz, lista);
+        Deque<No> pilha = new ArrayDeque<>();
+        No atual = raiz;
+
+        while (atual != null || !pilha.isEmpty()) {
+            while (atual != null) {
+                pilha.push(atual);
+                atual = atual.getEsquerda();
+            }
+            atual = pilha.pop();
+            lista.add(atual.getLivro());
+            atual = atual.getDireita();
+        }
         return lista;
     }
 
-    private void percorrerEmOrdem(No atual, List<Livro> lista) {
-        if (atual != null) {
-            percorrerEmOrdem(atual.getEsquerda(), lista);
-            lista.add(atual.getLivro());
-            percorrerEmOrdem(atual.getDireita(), lista);
-        }
-    }
-
-    // Removendo
+    /** Remove um livro preservando as regras da ABB, sem chamadas recursivas. */
     public void remover(int chave) throws ModelException {
-        if (buscar(chave) == null) {
-            throw new ModelException("Livro com chave " + chave + " não encontrado para remoção.");
+        No pai = null;
+        No atual = raiz;
+
+        while (atual != null && atual.getLivro().getChave() != chave) {
+            pai = atual;
+            atual = chave < atual.getLivro().getChave()
+                    ? atual.getEsquerda() : atual.getDireita();
         }
-        raiz = removerRecursivo(raiz, chave);
-        tamanho--;
-    }
 
-    private No removerRecursivo(No atual, int chave) {
-        if (atual == null) return null;
+        if (atual == null) {
+            throw new ModelException("Livro com chave " + chave
+                    + " não encontrado para remoção.");
+        }
 
-        if (chave < atual.getLivro().getChave()) {
-            atual.setEsquerda(removerRecursivo(atual.getEsquerda(), chave));
-        } else if (chave > atual.getLivro().getChave()) {
-            atual.setDireita(removerRecursivo(atual.getDireita(), chave));
+        // Com dois filhos, substitui pelo sucessor em ordem.
+        if (atual.getEsquerda() != null && atual.getDireita() != null) {
+            No paiSucessor = atual;
+            No sucessor = atual.getDireita();
+            while (sucessor.getEsquerda() != null) {
+                paiSucessor = sucessor;
+                sucessor = sucessor.getEsquerda();
+            }
+
+            atual.setLivro(sucessor.getLivro());
+            No filhoSucessor = sucessor.getDireita();
+            if (paiSucessor.getEsquerda() == sucessor) {
+                paiSucessor.setEsquerda(filhoSucessor);
+            } else {
+                paiSucessor.setDireita(filhoSucessor);
+            }
         } else {
-            if (atual.getEsquerda() == null) return atual.getDireita();
-            if (atual.getDireita() == null) return atual.getEsquerda();
+            // Com zero ou um filho, conecta o pai diretamente ao substituto.
+            No substituto = atual.getEsquerda() != null
+                    ? atual.getEsquerda() : atual.getDireita();
 
-            atual.setLivro(menorValor(atual.getDireita()));
-            atual.setDireita(removerRecursivo(atual.getDireita(), atual.getLivro().getChave()));
+            if (pai == null) {
+                raiz = substituto;
+            } else if (pai.getEsquerda() == atual) {
+                pai.setEsquerda(substituto);
+            } else {
+                pai.setDireita(substituto);
+            }
         }
-        return atual;
-    }
 
-    private Livro menorValor(No raiz) {
-        Livro minv = raiz.getLivro();
-        while (raiz.getEsquerda() != null) {
-            minv = raiz.getEsquerda().getLivro();
-            raiz = raiz.getEsquerda();
-        }
-        return minv;
+        tamanho--;
     }
 }
