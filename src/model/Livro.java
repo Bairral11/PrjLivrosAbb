@@ -71,7 +71,7 @@ public class Livro {
 	
 	public static void validarAno(int ano) throws ModelException {
 		if (ano <= 0) {
-			throw new ModelException("Ano não pode ser menor do que 0.");
+			throw new ModelException("Ano deve ser maior do que 0.");
 		}
 	}
 }
